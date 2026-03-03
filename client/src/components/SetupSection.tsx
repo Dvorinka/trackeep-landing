@@ -4,7 +4,7 @@
  * Layout: Tabbed interface showing different setup methods
  * Colors: Dark theme with syntax highlighting and interactive elements
  */
-import { useState, version } from "react";
+import { useState } from "react";
 import { Copy, Check, Package, Github, Server, Zap } from "lucide-react";
 
 interface SetupMethod {
@@ -14,6 +14,7 @@ interface SetupMethod {
   icon: React.ReactNode;
   difficulty: "Easy" | "Medium" | "Advanced";
   time: string;
+  ctaHref: string;
   commands: string[];
   features: string[];
 }
@@ -26,6 +27,7 @@ const SETUP_METHODS: SetupMethod[] = [
     icon: <Package size={20} />,
     difficulty: "Easy",
     time: "5 minutes",
+    ctaHref: "https://github.com/Dvorinka/Trackeep#docker-compose",
     commands: [
       `# Create docker-compose.yml
 cat > docker-compose.yml << 'EOF'
@@ -96,6 +98,7 @@ docker-compose up -d`
     icon: <Github size={20} />,
     difficulty: "Medium",
     time: "15 minutes",
+    ctaHref: "https://github.com/Dvorinka/Trackeep#from-source",
     commands: [
       `git clone https://github.com/Dvorinka/Trackeep.git
 cd Trackeep
@@ -113,9 +116,8 @@ docker-compose up -d`
   }
 ];
 
-function SetupCard({ method, index, isActive, onClick }: { 
+function SetupCard({ method, isActive, onClick }: {
   method: SetupMethod; 
-  index: number; 
   isActive: boolean; 
   onClick: () => void;
 }) {
@@ -226,8 +228,10 @@ function SetupCard({ method, index, isActive, onClick }: {
           {/* CTA */}
           <div className="pt-2 border-t border-white/[0.04]">
             <a
-              href="#get-started"
+              href={method.ctaHref}
               onClick={(e) => e.stopPropagation()}
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-[#39b9ff] text-[#0a0e18] hover:bg-[#5cc8ff] transition-all duration-200"
             >
               <Zap size={14} />
@@ -244,20 +248,23 @@ export default function SetupSection() {
   const [activeMethod, setActiveMethod] = useState("docker");
 
   const handleMethodClick = (methodId: string) => {
-    // Store current scroll position
-    const scrollY = window.scrollY;
-    
-    // Set the active method
+    const clickedCard = document.getElementById(`setup-card-${methodId}`);
+    const beforeTop = clickedCard?.getBoundingClientRect().top ?? 0;
+
     setActiveMethod(methodId);
-    
-    // Restore scroll position after state update
-    setTimeout(() => {
-      window.scrollTo(0, scrollY);
-    }, 0);
+
+    requestAnimationFrame(() => {
+      const afterTop = clickedCard?.getBoundingClientRect().top ?? 0;
+      const delta = afterTop - beforeTop;
+      if (delta !== 0) {
+        window.scrollBy({ top: delta, behavior: "auto" });
+      }
+    });
   };
 
   return (
     <section id="setup" className="relative py-24 sm:py-32 bg-[#0a0e18]">
+      <div id="get-started" className="absolute -top-24" aria-hidden />
       {/* Background pattern */}
       <div
         className="absolute inset-0 opacity-[0.03]"
@@ -289,11 +296,10 @@ export default function SetupSection() {
 
         {/* Setup methods */}
         <div className="space-y-3">
-          {SETUP_METHODS.map((method, index) => (
+          {SETUP_METHODS.map((method) => (
             <SetupCard
               key={method.id}
               method={method}
-              index={index}
               isActive={activeMethod === method.id}
               onClick={() => handleMethodClick(method.id)}
             />
