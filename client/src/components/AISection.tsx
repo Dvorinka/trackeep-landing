@@ -5,6 +5,12 @@
  * Colors: Dark theme with blue gradients and glowing effects
  */
 import { Brain, Sparkles, Zap } from "lucide-react";
+import deepseekLogo from "../assets/ai-models/deepseek-color.svg";
+import grokLogo from "../assets/ai-models/grok.svg";
+import longcatLogo from "../assets/ai-models/longcat-color.svg";
+import mistralLogo from "../assets/ai-models/mistral-color.svg";
+import ollamaLogo from "../assets/ai-models/ollama.svg";
+import openrouterLogo from "../assets/ai-models/openrouter.svg";
 
 interface AIModel {
   name: string;
@@ -20,12 +26,12 @@ interface AIFeature {
 }
 
 const AI_MODELS: AIModel[] = [
-  { name: "DeepSeek", logo: "/src/assets/ai-models/deepseek-color.svg", description: "Advanced reasoning and content analysis" },
-  { name: "Grok", logo: "/src/assets/ai-models/grok.svg", description: "Real-time knowledge and witty responses" },
-  { name: "LongCat", logo: "/src/assets/ai-models/longcat-color.svg", description: "Advanced AI features and specialized tasks" },
-  { name: "Mistral", logo: "/src/assets/ai-models/mistral-color.svg", description: "European AI with strong privacy focus" },
-  { name: "Ollama", logo: "/src/assets/ai-models/ollama.svg", description: "Self-hosted local AI models" },
-  { name: "OpenRouter", logo: "/src/assets/ai-models/openrouter.svg", description: "Universal AI model gateway" }
+  { name: "DeepSeek", logo: deepseekLogo, description: "Advanced reasoning and content analysis" },
+  { name: "Grok", logo: grokLogo, description: "Real-time knowledge and witty responses" },
+  { name: "LongCat", logo: longcatLogo, description: "Advanced AI features and specialized tasks" },
+  { name: "Mistral", logo: mistralLogo, description: "European AI with strong privacy focus" },
+  { name: "Ollama", logo: ollamaLogo, description: "Self-hosted local AI models" },
+  { name: "OpenRouter", logo: openrouterLogo, description: "Universal AI model gateway" }
 ];
 
 const AI_FEATURES: AIFeature[] = [
