@@ -1,9 +1,9 @@
 /*
- * Trackeep Hero Section
- * Design: Full-viewport dark gradient hero with centered headline
- * Background: Deep navy (#0a0e18) → blue → softer blue gradient
- * Typography: Large bold headline, lighter subtitle
- * Elements: CTA button, floating dashboard mockup below
+ * Trackeep Hero Section - Clean & Professional
+ * Design: Minimal hero with clean typography and subtle effects
+ * Background: Deep navy with subtle gradients
+ * Typography: Clean, readable hierarchy
+ * Elements: Simple CTA buttons, clean dashboard mockup
  */
 import { useEffect, useRef } from "react";
 import { ArrowRight, Sparkles } from "lucide-react";
@@ -27,28 +27,19 @@ export default function HeroSection() {
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
-      {/* Gradient background */}
+      {/* Clean gradient background */}
       <div className="absolute inset-0 bg-[#0a0e18]" />
       <div
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(57,185,255,0.12) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 50% 100%, rgba(57,185,255,0.08) 0%, transparent 50%)",
-        }}
-      />
-      {/* Subtle grid pattern */}
-      <div
-        className="absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
-          backgroundSize: "60px 60px",
+            "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(57,185,255,0.08) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 50% 100%, rgba(57,185,255,0.05) 0%, transparent 50%)",
         }}
       />
 
       {/* Content */}
       <div ref={heroRef} className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 text-center pt-32 sm:pt-36 pb-8">
-        {/* Badge */}
+        {/* Clean badge */}
         <div
           data-animate
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#39b9ff]/20 bg-[#39b9ff]/5 mb-8 opacity-0 translate-y-6 transition-all duration-700 ease-out"
@@ -59,22 +50,22 @@ export default function HeroSection() {
           </span>
         </div>
 
-        {/* Headline */}
+        {/* Clean headline */}
         <h1
           data-animate
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.08] mb-6 opacity-0 translate-y-6 transition-all duration-700 ease-out"
+          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white leading-[1.1] mb-6 opacity-0 translate-y-6 transition-all duration-700 ease-out"
         >
           Your entire digital life,
           <br />
-          <span className="bg-gradient-to-r from-[#39b9ff] via-[#6dd5ff] to-[#39b9ff] bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-[#39b9ff] to-[#6dd5ff] bg-clip-text text-transparent">
             in one place
           </span>
         </h1>
 
-        {/* Subtitle */}
+        {/* Clean subtitle */}
         <p
           data-animate
-          className="max-w-2xl mx-auto text-base sm:text-lg text-white/50 leading-relaxed mb-10 opacity-0 translate-y-6 transition-all duration-700 ease-out"
+          className="max-w-2xl mx-auto text-lg sm:text-xl text-white/50 leading-relaxed mb-10 opacity-0 translate-y-6 transition-all duration-700 ease-out"
         >
           Bookmarks, tasks, notes, files, AI-powered search, and mobile apps — all in one 
           <span className="text-[#39b9ff] font-semibold"> completely free</span> and 
@@ -82,7 +73,7 @@ export default function HeroSection() {
           No subscriptions, no vendor lock-in. Your data, your rules.
         </p>
 
-        {/* CTAs */}
+        {/* Clean CTAs */}
         <div
           data-animate
           className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 opacity-0 translate-y-6 transition-all duration-700 ease-out"
@@ -102,13 +93,13 @@ export default function HeroSection() {
           </a>
         </div>
 
-        {/* Dashboard mockup */}
+        {/* Clean dashboard mockup */}
         <div
           data-animate
           className="relative max-w-4xl mx-auto opacity-0 translate-y-6 transition-all duration-1000 ease-out"
         >
           <div className="relative rounded-xl overflow-hidden border border-white/10 shadow-2xl shadow-[#39b9ff]/5">
-            {/* Browser chrome */}
+            {/* Clean browser chrome */}
             <div className="flex items-center gap-2 px-4 py-3 bg-[#1a1d25] border-b border-white/5">
               <div className="flex gap-1.5">
                 <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
@@ -128,7 +119,7 @@ export default function HeroSection() {
               loading="eager"
             />
           </div>
-          {/* Glow effect behind mockup */}
+          {/* Subtle glow effect */}
           <div className="absolute -inset-4 bg-[#39b9ff]/5 rounded-2xl blur-3xl -z-10" />
         </div>
       </div>

@@ -12,19 +12,42 @@ const API_DOCS = `# Trackeep API Documentation
 
 ## Overview
 
-Trackeep provides a RESTful API for managing bookmarks, tasks, files, and notes. All API endpoints (except authentication) require a valid JWT token. The application also integrates with AI services (Mistral and LongCat) for enhanced functionality.
+Trackeep provides a comprehensive RESTful API for managing bookmarks, tasks, files, and notes. Built with modern web technologies and enhanced with AI capabilities, it offers powerful search, organization, and automation features.
 
 **Base URL:** \`http://localhost:8080/api/v1\`
 
 **Authentication:** Bearer Token (JWT)
+
+**API Version:** v1.0.0
+
+**Content-Type:** application/json (except file uploads)
+
+## Quick Start
+
+### 1. Get Your API Token
+\`\`\`bash
+curl -X POST http://localhost:8080/api/v1/auth/login \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "email": "your-email@example.com",
+    "password": "your-password"
+  }'
+\`\`\`
+
+### 2. Make Your First API Call
+\`\`\`bash
+curl -X GET http://localhost:8080/api/v1/bookmarks \\
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+\`\`\`
 
 ## AI Services Integration
 
 Trackeep integrates with multiple AI providers to enhance functionality:
 
 ### Mistral AI
-- **Purpose:** General AI tasks and text processing
+- **Purpose:** General AI tasks, text processing, and content generation
 - **Model:** mistral-small-latest (configurable)
+- **Features:** Text summarization, content analysis, tag suggestions
 - **Environment Variables:**
   - \`MISTRAL_API_KEY\`: Your Mistral API key
   - \`MISTRAL_MODEL\`: The model to use (default: mistral-small-latest)
@@ -32,6 +55,7 @@ Trackeep integrates with multiple AI providers to enhance functionality:
 ### LongCat AI
 - **Purpose:** Advanced AI features and specialized tasks
 - **API Documentation:** https://longcat.chat/platform/docs/
+- **Features:** Enhanced semantic search, content understanding
 - **Environment Variables:**
   - \`LONGCAT_API_KEY\`: Your LongCat API key
   - \`LONGCAT_BASE_URL\`: LongCat API base URL (default: https://api.longcat.chat)
@@ -55,6 +79,18 @@ MISTRAL_MODEL=mistral-small-latest
 # LongCat AI Configuration
 LONGCAT_API_KEY=ak_2886WQ2oE7rX3Ll3XD3pj1oM8iB4u
 LONGCAT_BASE_URL=https://api.longcat.chat
+
+# Optional: Database Configuration
+DATABASE_URL=postgresql://user:password@localhost:5432/trackeep
+REDIS_URL=redis://localhost:6379
+
+# Optional: File Storage
+UPLOAD_MAX_SIZE=10485760  # 10MB in bytes
+ALLOWED_FILE_TYPES=pdf,doc,docx,txt,md,jpg,png,gif
+
+# Optional: Rate Limiting
+RATE_LIMIT_REQUESTS=100
+RATE_LIMIT_WINDOW=60  # seconds
 \`\`\`
 
 ## Authentication
@@ -67,7 +103,11 @@ Content-Type: application/json
 {
   "email": "user@example.com",
   "password": "password123",
-  "name": "John Doe"
+  "name": "John Doe",
+  "preferences": {
+    "theme": "dark",
+    "language": "en"
+  }
 }
 \`\`\`
 
@@ -78,8 +118,14 @@ Content-Type: application/json
   "user": {
     "id": 1,
     "email": "user@example.com",
-    "name": "John Doe"
-  }
+    "name": "John Doe",
+    "preferences": {
+      "theme": "dark",
+      "language": "en"
+    },
+    "created_at": "2024-01-01T00:00:00Z"
+  },
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 \`\`\`
 
@@ -101,8 +147,40 @@ Content-Type: application/json
   "user": {
     "id": 1,
     "email": "user@example.com",
-    "name": "John Doe"
-  }
+    "name": "John Doe",
+    "preferences": {
+      "theme": "dark",
+      "language": "en"
+    }
+  },
+  "expires_at": "2024-01-08T00:00:00Z"
+}
+\`\`\`
+
+### Refresh Token
+\`\`\`http
+POST /auth/refresh
+Authorization: Bearer <token>
+\`\`\`
+
+**Response:**
+\`\`\`json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expires_at": "2024-01-08T00:00:00Z"
+}
+\`\`\`
+
+### Logout
+\`\`\`http
+POST /auth/logout
+Authorization: Bearer <token>
+\`\`\`
+
+**Response:**
+\`\`\`json
+{
+  "message": "Logged out successfully"
 }
 \`\`\`
 
@@ -110,15 +188,17 @@ Content-Type: application/json
 
 ### Get All Bookmarks
 \`\`\`http
-GET /bookmarks?page=1&limit=20&search=example&tag=important
+GET /bookmarks?page=1&limit=20&search=example&tag=important&sort=created_at&order=desc
 Authorization: Bearer <token>
 \`\`\`
 
 **Query Parameters:**
 - \`page\` (int): Page number (default: 1)
-- \`limit\` (int): Items per page (default: 20)
-- \`search\` (string): Search in title and description
+- \`limit\` (int): Items per page (default: 20, max: 100)
+- \`search\` (string): Search in title, description, and URL
 - \`tag\` (string): Filter by tag
+- \`sort\` (string): Sort field (created_at, updated_at, title)
+- \`order\` (string): Sort order (asc, desc)
 
 **Response:**
 \`\`\`json
@@ -130,13 +210,47 @@ Authorization: Bearer <token>
       "url": "https://example.com",
       "description": "An example bookmark",
       "tags": ["important", "reference"],
+      "favicon": "https://example.com/favicon.ico",
+      "preview_image": "https://example.com/preview.jpg",
+      "is_favorite": true,
+      "visit_count": 15,
+      "last_visited": "2024-01-01T12:00:00Z",
       "created_at": "2024-01-01T00:00:00Z",
       "updated_at": "2024-01-01T00:00:00Z"
     }
   ],
-  "total": 1,
-  "page": 1,
-  "limit": 20
+  "pagination": {
+    "total": 1,
+    "page": 1,
+    "limit": 20,
+    "total_pages": 1,
+    "has_next": false,
+    "has_prev": false
+  }
+}
+\`\`\`
+
+### Get Bookmark by ID
+\`\`\`http
+GET /bookmarks/:id
+Authorization: Bearer <token>
+\`\`\`
+
+**Response:**
+\`\`\`json
+{
+  "id": 1,
+  "title": "Example Bookmark",
+  "url": "https://example.com",
+  "description": "An example bookmark",
+  "tags": ["important", "reference"],
+  "favicon": "https://example.com/favicon.ico",
+  "preview_image": "https://example.com/preview.jpg",
+  "is_favorite": true,
+  "visit_count": 15,
+  "last_visited": "2024-01-01T12:00:00Z",
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-01T00:00:00Z"
 }
 \`\`\`
 
@@ -150,7 +264,72 @@ Content-Type: application/json
   "title": "New Bookmark",
   "url": "https://example.com",
   "description": "A new bookmark",
-  "tags": ["new", "example"]
+  "tags": ["new", "example"],
+  "is_favorite": false
+}
+\`\`\`
+
+**Response:**
+\`\`\`json
+{
+  "id": 2,
+  "title": "New Bookmark",
+  "url": "https://example.com",
+  "description": "A new bookmark",
+  "tags": ["new", "example"],
+  "favicon": "https://example.com/favicon.ico",
+  "preview_image": null,
+  "is_favorite": false,
+  "visit_count": 0,
+  "last_visited": null,
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-01T00:00:00Z"
+}
+\`\`\`
+
+### Update Bookmark
+\`\`\`http
+PUT /bookmarks/:id
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "title": "Updated Bookmark",
+  "description": "Updated description",
+  "tags": ["updated", "example"],
+  "is_favorite": true
+}
+\`\`\`
+
+### Delete Bookmark
+\`\`\`http
+DELETE /bookmarks/:id
+Authorization: Bearer <token>
+\`\`\`
+
+**Response:**
+\`\`\`json
+{
+  "message": "Bookmark deleted successfully"
+}
+\`\`\`
+
+### Import Bookmarks
+\`\`\`http
+POST /bookmarks/import
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "source": "browser",
+  "bookmarks": [
+    {
+      "title": "Imported Bookmark",
+      "url": "https://example.com",
+      "description": "Imported from browser",
+      "tags": ["imported"]
+    }
+  ]
 }
 \`\`\`
 
@@ -158,7 +337,7 @@ Content-Type: application/json
 
 ### Get All Notes
 \`\`\`http
-GET /notes?page=1&limit=20&search=example&tag=important
+GET /notes?page=1&limit=20&search=example&tag=important&sort=updated_at&order=desc
 Authorization: Bearer <token>
 \`\`\`
 
@@ -169,15 +348,23 @@ Authorization: Bearer <token>
     {
       "id": 1,
       "title": "Meeting Notes",
-      "content": "Important meeting notes...",
+      "content": "# Meeting Notes\\n\\nImportant discussion points...",
       "tags": ["meeting", "important"],
+      "is_pinned": true,
+      "word_count": 245,
+      "read_time": 2,
       "created_at": "2024-01-01T00:00:00Z",
       "updated_at": "2024-01-01T00:00:00Z"
     }
   ],
-  "total": 1,
-  "page": 1,
-  "limit": 20
+  "pagination": {
+    "total": 1,
+    "page": 1,
+    "limit": 20,
+    "total_pages": 1,
+    "has_next": false,
+    "has_prev": false
+  }
 }
 \`\`\`
 
@@ -189,8 +376,23 @@ Content-Type: application/json
 
 {
   "title": "New Note",
-  "content": "Note content",
-  "tags": ["new", "example"]
+  "content": "# New Note\\n\\nThis is the content...",
+  "tags": ["new", "example"],
+  "is_pinned": false
+}
+\`\`\`
+
+### Update Note
+\`\`\`http
+PUT /notes/:id
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "title": "Updated Note",
+  "content": "# Updated Note\\n\\nUpdated content...",
+  "tags": ["updated"],
+  "is_pinned": true
 }
 \`\`\`
 
@@ -198,15 +400,15 @@ Content-Type: application/json
 
 ### Get All Tasks
 \`\`\`http
-GET /tasks?page=1&limit=20&status=pending&priority=high
+GET /tasks?page=1&limit=20&status=pending&priority=high&due_date=2024-01-15&sort=due_date&order=asc
 Authorization: Bearer <token>
 \`\`\`
 
 **Query Parameters:**
-- \`page\` (int): Page number
-- \`limit\` (int): Items per page
-- \`status\` (string): Filter by status (pending, in_progress, completed)
-- \`priority\` (string): Filter by priority (low, medium, high)
+- \`status\` (string): Filter by status (pending, in_progress, completed, cancelled)
+- \`priority\` (string): Filter by priority (low, medium, high, urgent)
+- \`due_date\` (string): Filter by due date (YYYY-MM-DD format)
+- \`assigned_to\` (int): Filter by assigned user ID
 
 **Response:**
 \`\`\`json
@@ -219,13 +421,26 @@ Authorization: Bearer <token>
       "status": "in_progress",
       "priority": "high",
       "due_date": "2024-01-15T00:00:00Z",
+      "assigned_to": {
+        "id": 1,
+        "name": "John Doe",
+        "email": "john@example.com"
+      },
+      "progress": 65,
+      "estimated_hours": 40,
+      "actual_hours": 26,
       "created_at": "2024-01-01T00:00:00Z",
       "updated_at": "2024-01-01T00:00:00Z"
     }
   ],
-  "total": 1,
-  "page": 1,
-  "limit": 20
+  "pagination": {
+    "total": 1,
+    "page": 1,
+    "limit": 20,
+    "total_pages": 1,
+    "has_next": false,
+    "has_prev": false
+  }
 }
 \`\`\`
 
@@ -240,7 +455,21 @@ Content-Type: application/json
   "description": "Task description",
   "status": "pending",
   "priority": "medium",
-  "due_date": "2024-01-15T00:00:00Z"
+  "due_date": "2024-01-15T00:00:00Z",
+  "assigned_to": 1,
+  "estimated_hours": 8
+}
+\`\`\`
+
+### Update Task Progress
+\`\`\`http
+PATCH /tasks/:id/progress
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "progress": 75,
+  "actual_hours": 30
 }
 \`\`\`
 
@@ -254,32 +483,42 @@ Content-Type: multipart/form-data
 
 file: <binary data>
 description: "File description"
-\`\`\`
-
-### Get All Files
-\`\`\`http
-GET /files?page=1&limit=20&type=image
-Authorization: Bearer <token>
+tags: ["document", "important"]
 \`\`\`
 
 **Response:**
 \`\`\`json
 {
-  "files": [
-    {
-      "id": 1,
-      "filename": "document.pdf",
-      "original_name": "My Document.pdf",
-      "file_size": 1024000,
-      "file_type": "application/pdf",
-      "description": "Important document",
-      "created_at": "2024-01-01T00:00:00Z"
-    }
-  ],
-  "total": 1,
-  "page": 1,
-  "limit": 20
+  "id": 1,
+  "filename": "document_20240101_123456.pdf",
+  "original_name": "My Document.pdf",
+  "file_size": 1024000,
+  "file_type": "application/pdf",
+  "mime_type": "application/pdf",
+  "description": "File description",
+  "tags": ["document", "important"],
+  "download_url": "/files/download/1",
+  "preview_url": "/files/preview/1",
+  "created_at": "2024-01-01T00:00:00Z"
 }
+\`\`\`
+
+### Get All Files
+\`\`\`http
+GET /files?page=1&limit=20&type=image&tag=document
+Authorization: Bearer <token>
+\`\`\`
+
+### Download File
+\`\`\`http
+GET /files/download/:id
+Authorization: Bearer <token>
+\`\`\`
+
+### Get File Preview
+\`\`\`http
+GET /files/preview/:id
+Authorization: Bearer <token>
 \`\`\`
 
 ## Search
@@ -295,8 +534,33 @@ Content-Type: application/json
   "filters": {
     "type": ["notes", "bookmarks"],
     "tags": ["work"],
-    "date_range": "last_30_days"
+    "date_range": "last_30_days",
+    "priority": ["high", "medium"]
+  },
+  "options": {
+    "fuzzy": true,
+    "boost_recent": true,
+    "limit": 20
   }
+}
+\`\`\`
+
+**Response:**
+\`\`\`json
+{
+  "results": [
+    {
+      "type": "note",
+      "id": 1,
+      "title": "Project Management Notes",
+      "content": "Important points about project management...",
+      "score": 0.95,
+      "highlights": ["<mark>project management</mark>", "best practices"],
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "total": 1,
+  "query_time": 0.045
 }
 \`\`\`
 
@@ -309,7 +573,27 @@ Content-Type: application/json
 {
   "query": "machine learning algorithms",
   "content_types": ["notes", "bookmarks"],
-  "limit": 10
+  "limit": 10,
+  "threshold": 0.7
+}
+\`\`\`
+
+### Search Suggestions
+\`\`\`http
+GET /search/suggestions?q=proj&limit=5
+Authorization: Bearer <token>
+\`\`\`
+
+**Response:**
+\`\`\`json
+{
+  "suggestions": [
+    "project management",
+    "project timeline",
+    "project documentation",
+    "project goals",
+    "project resources"
+  ]
 }
 \`\`\`
 
@@ -324,16 +608,19 @@ Content-Type: application/json
 {
   "content": "Long text to summarize...",
   "provider": "mistral",
-  "max_length": 150
+  "max_length": 150,
+  "style": "bullet_points"
 }
 \`\`\`
 
 **Response:**
 \`\`\`json
 {
-  "summary": "Concise summary of the content...",
+  "summary": "• Key point 1\\n• Key point 2\\n• Key point 3",
   "provider": "mistral",
-  "word_count": 45
+  "word_count": 45,
+  "original_word_count": 500,
+  "compression_ratio": 0.09
 }
 \`\`\`
 
@@ -345,15 +632,132 @@ Content-Type: application/json
 
 {
   "content": "Article about machine learning algorithms",
-  "existing_tags": ["ai", "technology"]
+  "existing_tags": ["ai", "technology"],
+  "limit": 10
 }
 \`\`\`
 
 **Response:**
 \`\`\`json
 {
-  "suggestions": ["machine-learning", "algorithms", "data-science", "ml"]
+  "suggestions": [
+    {
+      "tag": "machine-learning",
+      "confidence": 0.95
+    },
+    {
+      "tag": "algorithms",
+      "confidence": 0.88
+    },
+    {
+      "tag": "data-science",
+      "confidence": 0.82
+    }
+  ]
 }
+\`\`\`
+
+### Extract Content from URL
+\`\`\`http
+POST /ai/extract
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "url": "https://example.com/article",
+  "extract_images": true,
+  "max_length": 1000
+}
+\`\`\`
+
+**Response:**
+\`\`\`json
+{
+  "title": "Article Title",
+  "content": "Extracted article content...",
+  "images": [
+    {
+      "url": "https://example.com/image1.jpg",
+      "alt": "Image description"
+    }
+  ],
+  "author": "Author Name",
+  "publish_date": "2024-01-01T00:00:00Z"
+}
+\`\`\`
+
+## Webhooks
+
+### Create Webhook
+\`\`\`http
+POST /webhooks
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "url": "https://your-app.com/webhook",
+  "events": ["bookmark.created", "task.completed"],
+  "secret": "webhook_secret_key",
+  "active": true
+}
+\`\`\`
+
+### List Webhooks
+\`\`\`http
+GET /webhooks
+Authorization: Bearer <token>
+\`\`\`
+
+### Test Webhook
+\`\`\`http
+POST /webhooks/:id/test
+Authorization: Bearer <token>
+\`\`\`
+
+## Analytics & Stats
+
+### Get User Statistics
+\`\`\`http
+GET /stats/user
+Authorization: Bearer <token>
+\`\`\`
+
+**Response:**
+\`\`\`json
+{
+  "bookmarks": {
+    "total": 156,
+    "this_month": 23,
+    "favorites": 42
+  },
+  "notes": {
+    "total": 89,
+    "this_month": 12,
+    "pinned": 8
+  },
+  "tasks": {
+    "total": 67,
+    "completed": 45,
+    "pending": 15,
+    "overdue": 7
+  },
+  "files": {
+    "total": 34,
+    "total_size": 52428800,
+    "this_month": 8
+  },
+  "storage": {
+    "used": 52428800,
+    "limit": 1073741824,
+    "percentage": 4.88
+  }
+}
+\`\`\`
+
+### Get Activity Timeline
+\`\`\`http
+GET /stats/activity?limit=20&type=all
+Authorization: Bearer <token>
 \`\`\`
 
 ## Error Responses
@@ -362,30 +766,102 @@ All endpoints may return standard HTTP error responses:
 
 \`\`\`json
 {
-  "error": "Error message",
-  "status_code": 400,
-  "details": "Additional error details"
+  "error": {
+    "message": "Error description",
+    "code": "VALIDATION_ERROR",
+    "status_code": 400,
+    "details": {
+      "field": "email",
+      "reason": "Invalid email format"
+    }
+  },
+  "timestamp": "2024-01-01T00:00:00Z",
+  "request_id": "req_123456789"
 }
 \`\`\`
 
-Common status codes:
-- \`400\`: Bad Request
-- \`401\`: Unauthorized
-- \`403\`: Forbidden
-- \`404\`: Not Found
-- \`500\`: Internal Server Error
+Common error codes:
+- \`400\`: Bad Request - Invalid input data
+- \`401\`: Unauthorized - Invalid or missing token
+- \`403\`: Forbidden - Insufficient permissions
+- \`404\`: Not Found - Resource doesn't exist
+- \`409\`: Conflict - Resource already exists
+- \`422\`: Unprocessable Entity - Validation failed
+- \`429\`: Too Many Requests - Rate limit exceeded
+- \`500\`: Internal Server Error - Server error
 
 ## Rate Limiting
 
 API endpoints are rate-limited to prevent abuse:
-- Standard endpoints: 100 requests per minute
-- AI endpoints: 20 requests per minute
-- File uploads: 10 requests per minute
+- **Authentication endpoints**: 10 requests per minute
+- **Standard endpoints**: 100 requests per minute  
+- **AI endpoints**: 20 requests per minute
+- **File uploads**: 10 requests per minute
+- **Search endpoints**: 50 requests per minute
 
 Rate limit headers are included in all responses:
 - \`X-RateLimit-Limit\`: Total requests allowed
 - \`X-RateLimit-Remaining\`: Remaining requests
-- \`X-RateLimit-Reset\`: Time when limit resets (Unix timestamp)`;
+- \`X-RateLimit-Reset\`: Time when limit resets (Unix timestamp)
+- \`X-RateLimit-Retry-After\`: Seconds to wait before retrying
+
+## SDK & Libraries
+
+### JavaScript/TypeScript
+\`\`\`bash
+npm install @trackeep/api-client
+\`\`\`
+
+\`\`\`typescript
+import { TrackeepAPI } from '@trackeep/api-client';
+
+const client = new TrackeepAPI({
+  baseURL: 'http://localhost:8080/api/v1',
+  token: 'your-jwt-token'
+});
+
+const bookmarks = await client.bookmarks.getAll();
+const bookmark = await client.bookmarks.create({
+  title: 'New Bookmark',
+  url: 'https://example.com'
+});
+\`\`\`
+
+### Python
+\`\`\`bash
+pip install trackeep-python
+\`\`\`
+
+\`\`\`python
+from trackeep import TrackeepAPI
+
+client = TrackeepAPI(
+    base_url='http://localhost:8080/api/v1',
+    token='your-jwt-token'
+)
+
+bookmarks = client.bookmarks.list()
+bookmark = client.bookmarks.create({
+    'title': 'New Bookmark',
+    'url': 'https://example.com'
+})
+\`\`\`
+
+## Changelog
+
+### v1.0.0 (2024-01-01)
+- Initial API release
+- Basic CRUD operations for bookmarks, notes, tasks, files
+- Authentication and authorization
+- Basic search functionality
+- AI integration with Mistral and LongCat
+
+### Upcoming Features
+- Real-time WebSocket connections
+- Advanced collaboration features
+- Enhanced AI capabilities
+- Mobile API optimizations
+- GraphQL endpoint`;
 
 interface Section {
   id: string;
